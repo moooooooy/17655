@@ -1,0 +1,8 @@
+title: "17655"
+description: 一起来玩玩
+google_analytics: 
+show_downloads: true
+theme: jekyll-theme-merlot
+
+gems:
+  - jekyll-mentions
