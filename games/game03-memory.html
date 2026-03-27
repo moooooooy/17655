@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>记忆翻牌 - 17655小游戏</title>
+  <link rel="stylesheet" href="../assets/style.css" />
+  <style>
+    #grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;max-width:320px;margin:0 auto}
+    .card{
+      height:70px;border-radius:12px;
+      background:linear-gradient(145deg,#111827,#020617);
+      border:1px solid rgba(75,85,99,.9);
+      display:flex;align-items:center;justify-content:center;
+      font-size:26px;font-weight:900;cursor:pointer;
+      transition:transform .10s, box-shadow .15s, border-color .15s;
+      user-select:none;
+    }
+    .card:hover{transform:translateY(-1px);border-color:rgba(79,209,255,.8)}
+    .card.open,.card.matched{
+      background:radial-gradient(circle at top, rgba(79,209,255,.35), #020617 60%);
+      box-shadow:0 0 14px rgba(79,209,255,.25);
+      border-color:rgba(79,209,255,.8);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div class="nav">
+        <div class="logo">176<span>55</span> 游戏</div>
+        <div class="nav-right">
+          <a href="../index.html">← 返回首页</a>
+          <a href="./game04-whack.html">下一个：打地鼠 →</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container game-shell">
+    <div class="game-top">
+      <div>
+        <h2 class="game-title">记忆翻牌</h2>
+        <div class="hint">翻开两张卡牌寻找配对。步数越少，得分越高。</div>
+      </div>
+      <div class="row">
+        <span class="muted">昵称：</span>
+        <input data-player-name placeholder="游客" />
+        <button class="btn ghost" style="padding:8px 12px" id="restart">重新洗牌</button>
+        <button class="btn primary" style="padding:8px 12px" id="submit" disabled>提交成绩</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div id="grid"></div>
+      <div class="row" style="justify-content:center;margin-top:10px">
+        <span class="pill">步数：<span id="moves">0</span></span>
+        <span class="pill">得分：<span id="score">0</span></span>
+        <span class="pill">状态：<span id="state">进行中</span></span>
+      </div>
+      <div class="muted" style="margin-top:10px;font-size:12px;text-align:center">
+        排行榜规则：得分 = max(0, 1000 - 步数×25)。
+      </div>
+    </div>
+  </main>
+
+  <footer><div>© 2026 17655.com · 记忆翻牌</div></footer>
+
+  <script src="../assets/site.js"></script>
+  <script>
+    Site17655.bindPlayerNameInput();
+
+    const icons = ['🍎','🍌','🍇','🍉','🍒','🍑','🍍','🥝'];
+    const gridEl = document.getElementById('grid');
+    const movesEl = document.getElementById('moves');
+    const scoreEl = document.getElementById('score');
+    const stateEl = document.getElementById('state');
+    const restartBtn = document.getElementById('restart');
+    const submitBtn = document.getElementById('submit');
+
+    let values = [];
+    let open = [];
+    let matched = 0;
+    let moves = 0;
+    let score = 0;
+    let done = false;
+    let submitted = false;
+
+    function calcScore() {
+      return Math.max(0, 1000 - moves * 25);
+    }
+
+    function init() {
+      values = [...icons, ...icons].sort(() => Math.random() - 0.5);
+      open = [];
+      matched = 0;
+      moves = 0;
+      score = 0;
+      done = false;
+      submitted = false;
+      submitBtn.disabled = true;
+      render();
+      update();
+    }
+
+    function update() {
+      movesEl.textContent = moves;
+      score = calcScore();
+      scoreEl.textContent = score;
+      stateEl.textContent = done ? '完成' : '进行中';
+      if (done) submitBtn.disabled = submitted;
+    }
+
+    function render() {
+      gridEl.innerHTML = '';
+      values.forEach((v, idx) => {
+        const el = document.createElement('div');
+        el.className = 'card';
+        el.dataset.idx = idx;
+        el.textContent = '❓';
+        el.onclick = () => flip(idx);
+        gridEl.appendChild(el);
+      });
+    }
+
+    function flip(idx) {
+      if (done) return;
+      const cards = Site17655.qsa('.card', gridEl);
+      const el = cards[idx];
+      if (el.classList.contains('matched') || el.classList.contains('open')) return;
+      if (open.length === 2) return;
+
+      el.classList.add('open');
+      el.textContent = values[idx];
+      open.push(idx);
+
+      if (open.length === 2) {
+        moves++;
+        update();
+        const [a,b] = open;
+        if (values[a] === values[b]) {
+          setTimeout(() => {
+            cards[a].classList.add('matched');
+            cards[b].classList.add('matched');
+            cards[a].classList.remove('open');
+            cards[b].classList.remove('open');
+            open = [];
+            matched += 2;
+            if (matched === values.length) {
+              done = true;
+              submitBtn.disabled = false;
+            }
+            update();
+          }, 260);
+        } else {
+          setTimeout(() => {
+            [a,b].forEach(i => {
+              cards[i].classList.remove('open');
+              cards[i].textContent = '❓';
+            });
+            open = [];
+          }, 520);
+        }
+      }
+    }
+
+    restartBtn.addEventListener('click', init);
+    submitBtn.addEventListener('click', () => {
+      if (!done || submitted) return;
+      const name = Site17655.qs('[data-player-name]').value;
+      Site17655.addScore({ gameId:'game03', gameName:'记忆翻牌', score, playerName:name });
+      submitted = true;
+      submitBtn.disabled = true;
+      alert('已提交成绩到本地排行榜：' + score);
+    });
+
+    init();
+  </script>
+</body>
+</html>

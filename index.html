@@ -1,40 +1,312 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
-<meta http-equiv="Content-Type" content="text/html; charset=GBK" />
-<HEAD>
-<TITLE>一起来玩玩：专业网页游戏网（www.17655.com）</TITLE>
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>17655 经典网页小游戏平台</title>
+  <link rel="stylesheet" href="./assets/style.css" />
+  <style>
+    .gicon{
+      width:22px;height:22px;
+      border-radius:8px;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      font-size:13px;
+      margin-right:6px;
+      background:rgba(79,209,255,.14);
+      border:1px solid rgba(79,209,255,.45);
+      vertical-align:middle;
+    }
+    .gtitle{
+      display:flex;
+      align-items:center;
+      gap:4px;
+    }
+    .thumb{
+      position:relative;
+    }
+    .thumb-icon{
+      position:absolute;
+      left:8px;
+      top:8px;
+      z-index:2;
+      width:28px;height:28px;
+      border-radius:10px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:16px;
+      background:rgba(2,6,23,.8);
+      border:1px solid rgba(148,163,184,.5);
+      box-shadow:0 6px 12px rgba(15,23,42,.65);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div class="nav">
+        <div class="logo">176<span>55</span> 游戏</div>
+        <div class="nav-right">
+          <a href="#recommend">推荐</a>
+          <a href="#games">全部游戏</a>
+          <a href="#leaderboard">排行榜</a>
+        </div>
+      </div>
+    </div>
+  </header>
 
+  <main class="container">
+    <section class="hero">
+      <div>
+        <h1>即点即玩：10款经典网页小游戏</h1>
+        <p>专注“轻量、经典、好玩”。支持桌面/移动端浏览器，零安装，打开就能玩。游戏成绩会自动写入本地排行榜（仅保存在你的浏览器）。</p>
+        <div class="actions">
+          <button class="btn primary" onclick="location.href='./games/game02-snake.html'">从《贪吃蛇》开始 →</button>
+          <button class="btn ghost" onclick="document.getElementById('games').scrollIntoView({behavior:'smooth'})">浏览全部游戏</button>
+        </div>
+        <div style="margin-top:12px" class="muted">
+          小贴士：在任何游戏页提交成绩后，回到首页即可看到排行榜更新。
+        </div>
+      </div>
+      <div class="card pad">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+          <div>
+            <div style="font-weight:800">快捷入口</div>
+            <div class="muted" style="font-size:12px;margin-top:2px">热门、耐玩、上手快</div>
+          </div>
+          <div class="pill">本地排行</div>
+        </div>
+        <div class="row" style="margin-top:12px">
+          <a class="chip" href="./games/game05-2048.html">🔢 2048</a>
+          <a class="chip" href="./games/game02-snake.html">🐍 贪吃蛇</a>
+          <a class="chip" href="./games/game08-flappy.html">🪽 Flappy</a>
+          <a class="chip" href="./games/game07-breakout.html">🧱 打砖块</a>
+          <a class="chip" href="./games/game04-whack.html">🔨 打地鼠</a>
+          <a class="chip" href="./games/game01-tictactoe.html">⭕ 井字棋</a>
+        </div>
+        <div style="margin-top:12px" class="muted">
+          你的昵称（用于成绩展示）：
+          <input data-player-name placeholder="游客" style="margin-left:6px" />
+        </div>
+      </div>
+    </section>
 
-<style>
-BODY {
-	FONT-WEIGHT: bold; FONT-SIZE: 14px; 
-    BACKGROUND: url(images/building-bg.jpg) #0cf repeat-x 0px 0px; COLOR: #333333; 
-    margin: 0;
-    padding: 0;/*--for opera--*/
-    text-align: center;/*--for IE5.0--*/
-    font-size: 12px;
-}
+    <section class="section" id="recommend">
+      <div class="section-head">
+        <h2>推荐栏目</h2>
+        <div class="muted">三种玩法路线，随你挑</div>
+      </div>
+      <div class="grid">
+        <div class="game-card" onclick="location.href='./games/game05-2048.html'">
+          <div class="thumb"><span class="thumb-icon">🔢</span></div>
+          <div class="pill" style="margin-top:10px">益智上头</div>
+          <h3 class="gtitle"><span class="gicon">🔢</span>挑战高分：2048</h3>
+          <p>方向键合并数字，冲击更高分。适合碎片时间反复挑战。</p>
+        </div>
+        <div class="game-card" onclick="location.href='./games/game02-snake.html'">
+          <div class="thumb"><span class="thumb-icon">🐍</span></div>
+          <div class="pill" style="margin-top:10px">经典耐玩</div>
+          <h3 class="gtitle"><span class="gicon">🐍</span>稳扎稳打：贪吃蛇</h3>
+          <p>一局接一局停不下来。简单规则，越玩越有成就感。</p>
+        </div>
+        <div class="game-card" onclick="location.href='./games/game08-flappy.html'">
+          <div class="thumb"><span class="thumb-icon">🪽</span></div>
+          <div class="pill" style="margin-top:10px">反应拉满</div>
+          <h3 class="gtitle"><span class="gicon">🪽</span>手速极限：Flappy Box</h3>
+          <p>点击/空格让方块飞行，穿越缝隙得分，拼节奏与手感。</p>
+        </div>
+      </div>
+    </section>
 
-#Gonggao{
-    margin: 0 auto;/*--居中 --*/
-	position: relative;
-	top: 120px;
-	width: 430px;
-	border: thin dashed;
-}
-.dvHidden{
-    display:none;
-}         
+    <section class="section" id="games">
+      <div class="section-head">
+        <h2>全部小游戏（10款）</h2>
+        <div class="muted">独立页面，加载更快</div>
+      </div>
+      <div class="grid">
+        <div class="game-card" onclick="location.href='./games/game01-tictactoe.html'">
+          <div class="thumb"><span class="thumb-icon">⭕</span></div>
+          <div class="pill" style="margin-top:10px">策略·双人</div>
+          <h3 class="gtitle"><span class="gicon">⭕</span>1. 井字棋</h3>
+          <p>本地双人轮流下棋，三子连线获胜。</p>
+        </div>
+        <div class="game-card" onclick="location.href='./games/game02-snake.html'">
+          <div class="thumb"><span class="thumb-icon">🐍</span></div>
+          <div class="pill" style="margin-top:10px">操作·键盘</div>
+          <h3 class="gtitle"><span class="gicon">🐍</span>2. 贪吃蛇</h3>
+          <p>方向键控制，吃到食物得分，别撞墙别咬到自己。</p>
+        </div>
+        <div class="game-card" onclick="location.href='./games/game03-memory.html'">
+          <div class="thumb"><span class="thumb-icon">🃏</span></div>
+          <div class="pill" style="margin-top:10px">益智·记忆</div>
+          <h3 class="gtitle"><span class="gicon">🃏</span>3. 记忆翻牌</h3>
+          <p>用更少步数完成配对，步数越少得分越高。</p>
+        </div>
+        <div class="game-card" onclick="location.href='./games/game04-whack.html'">
+          <div class="thumb"><span class="thumb-icon">🔨</span></div>
+          <div class="pill" style="margin-top:10px">反应·点击</div>
+          <h3 class="gtitle"><span class="gicon">🔨</span>4. 打地鼠</h3>
+          <p>30秒限时挑战，打中越多分越高。</p>
+        </div>
+        <div class="game-card" onclick="location.href='./games/game05-2048.html'">
+          <div class="thumb"><span class="thumb-icon">🔢</span></div>
+          <div class="pill" style="margin-top:10px">数字·合成</div>
+          <h3 class="gtitle"><span class="gicon">🔢</span>5. 2048</h3>
+          <p>合并相同数字，分数自动累加，挑战自己的极限。</p>
+        </div>
+        <div class="game-card" onclick="location.href='./games/game06-pong.html'">
+          <div class="thumb"><span class="thumb-icon">🏓</span></div>
+          <div class="pill" style="margin-top:10px">生存挑战</div>
+          <h3 class="gtitle"><span class="gicon">🏓</span>6. 迷你乒乓</h3>
+          <p>鼠标移动球拍，存活越久分越高。</p>
+        </div>
+        <div class="game-card" onclick="location.href='./games/game07-breakout.html'">
+          <div class="thumb"><span class="thumb-icon">🧱</span></div>
+          <div class="pill" style="margin-top:10px">打砖块</div>
+          <h3 class="gtitle"><span class="gicon">🧱</span>7. 砖块消除</h3>
+          <p>击碎砖块得分，清空通关，快来一把！</p>
+        </div>
+        <div class="game-card" onclick="location.href='./games/game08-flappy.html'">
+          <div class="thumb"><span class="thumb-icon">🪽</span></div>
+          <div class="pill" style="margin-top:10px">反应·节奏</div>
+          <h3 class="gtitle"><span class="gicon">🪽</span>8. Flappy Box</h3>
+          <p>点击/空格向上跳，穿过障碍得分。</p>
+        </div>
+        <div class="game-card" onclick="location.href='./games/game09-rps.html'">
+          <div class="thumb"><span class="thumb-icon">✊</span></div>
+          <div class="pill" style="margin-top:10px">休闲</div>
+          <h3 class="gtitle"><span class="gicon">✊</span>9. 石头剪刀布</h3>
+          <p>与电脑猜拳，连胜越多分越高。</p>
+        </div>
+        <div class="game-card" onclick="location.href='./games/game10-guess.html'">
+          <div class="thumb"><span class="thumb-icon">🎯</span></div>
+          <div class="pill" style="margin-top:10px">猜谜</div>
+          <h3 class="gtitle"><span class="gicon">🎯</span>10. 神秘数字</h3>
+          <p>猜对次数越少得分越高，适合轻松动脑。</p>
+        </div>
+      </div>
+    </section>
 
-</style>
-</HEAD>
-<BODY>
-<div id="Gonggao" >
-<img src="images/building.gif" width="66" height="50" />
-<p align="center">一起来玩玩17655.com，专业网页游戏网.....请稍候访问！</p>
-<p align="center" >专业开发收集网页游戏、flash游戏</p>
-<p align="center" >商务合作，Mail：moooy.liu@gmail.com / QQ：63065068</p>
-</div>
+    <section class="section" id="leaderboard">
+      <div class="section-head">
+        <h2>排行榜</h2>
+        <div class="muted">
+          <span class="nowrap">显示：</span>
+          <select id="lb-filter">
+            <option value="">全站总榜</option>
+            <option value="game01">井字棋</option>
+            <option value="game02">贪吃蛇</option>
+            <option value="game03">记忆翻牌</option>
+            <option value="game04">打地鼠</option>
+            <option value="game05">2048</option>
+            <option value="game06">迷你乒乓</option>
+            <option value="game07">打砖块</option>
+            <option value="game08">Flappy</option>
+            <option value="game09">猜拳</option>
+            <option value="game10">神秘数字</option>
+          </select>
+          <button class="btn ghost" style="padding:8px 12px" id="lb-clear">清空本地排行</button>
+        </div>
+      </div>
 
-</BODY>
-</HTML>
+      <div class="card pad">
+        <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px">
+          <div>
+            <div style="font-weight:800;margin-bottom:8px">Top 10（按分数）</div>
+            <table>
+              <thead>
+                <tr>
+                  <th class="nowrap">排名</th>
+                  <th>玩家</th>
+                  <th>游戏</th>
+                  <th class="right">分数</th>
+                  <th class="nowrap">时间</th>
+                </tr>
+              </thead>
+              <tbody id="lb-top"></tbody>
+            </table>
+          </div>
+          <div>
+            <div style="font-weight:800;margin-bottom:8px">最近提交</div>
+            <table>
+              <thead>
+                <tr>
+                  <th>玩家</th>
+                  <th>游戏</th>
+                  <th class="right">分数</th>
+                  <th class="nowrap">时间</th>
+                </tr>
+              </thead>
+              <tbody id="lb-recent"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="muted" style="margin-top:10px;font-size:12px">
+          说明：排行榜只存储在你本地浏览器（localStorage），不同设备/浏览器互不影响。
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div style="margin-bottom:8px">
+      商务合作：Mail：<a href="mailto:moooy.liu@gmail.com">moooy.liu@gmail.com</a> / QQ：63065068
+    </div>
+    <div>© 2026 17655.com · 首页 + 10个经典小游戏（纯前端示例）</div>
+  </footer>
+
+  <script src="./assets/site.js"></script>
+  <script>
+    Site17655.bindPlayerNameInput();
+
+    const filter = document.getElementById('lb-filter');
+    const topBody = document.getElementById('lb-top');
+    const recentBody = document.getElementById('lb-recent');
+
+    function render() {
+      const gameId = filter.value || undefined;
+      const top = Site17655.getTopScores({ gameId, limit: 10 });
+      const recent = Site17655.getRecentScores({ limit: 10 });
+
+      topBody.innerHTML = top.length ? top.map((s, i) => `
+        <tr>
+          <td class="nowrap">${i+1}</td>
+          <td>${escapeHtml(s.playerName)}</td>
+          <td>${escapeHtml(s.gameName)}</td>
+          <td class="right">${s.score}</td>
+          <td class="nowrap">${Site17655.formatTime(s.at)}</td>
+        </tr>
+      `).join('') : `<tr><td colspan="5" class="muted">暂无成绩，去任意游戏页玩一局并提交吧。</td></tr>`;
+
+      recentBody.innerHTML = recent.length ? recent.map((s) => `
+        <tr>
+          <td>${escapeHtml(s.playerName)}</td>
+          <td>${escapeHtml(s.gameName)}</td>
+          <td class="right">${s.score}</td>
+          <td class="nowrap">${Site17655.formatTime(s.at)}</td>
+        </tr>
+      `).join('') : `<tr><td colspan="4" class="muted">暂无记录。</td></tr>`;
+    }
+
+    function escapeHtml(str) {
+      return String(str || '')
+        .replaceAll('&','&amp;')
+        .replaceAll('<','&lt;')
+        .replaceAll('>','&gt;')
+        .replaceAll('"','&quot;')
+        .replaceAll("'","&#39;");
+    }
+
+    filter.addEventListener('change', render);
+    document.getElementById('lb-clear').addEventListener('click', () => {
+      if (!confirm('确定清空本地排行榜吗？此操作不可恢复。')) return;
+      Site17655.clearScores();
+      render();
+    });
+
+    render();
+  </script>
+</body>
+</html>

@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>石头剪刀布 - 17655小游戏</title>
+  <link rel="stylesheet" href="../assets/style.css" />
+  <style>
+    .duel{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:12px;
+      align-items:stretch;
+    }
+    .side{
+      border:1px solid rgba(148,163,184,.22);
+      border-radius:14px;
+      padding:12px;
+      background:rgba(2,6,23,.65);
+    }
+    .side h3{
+      margin:0 0 10px;
+      font-size:14px;
+      color:#dbeafe;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+    }
+    .stage{
+      min-height:144px;
+      border:1px solid rgba(75,85,99,.65);
+      border-radius:12px;
+      background:radial-gradient(circle at top, rgba(79,209,255,.15), #020617 60%);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      flex-direction:column;
+      gap:8px;
+      overflow:hidden;
+      position:relative;
+    }
+    .emoji{
+      font-size:56px;
+      line-height:1;
+      user-select:none;
+    }
+    .label{
+      font-size:13px;
+      color:#e5e7eb;
+      font-weight:800;
+    }
+    .hint2{
+      font-size:12px;
+      color:#94a3b8;
+    }
+    .pick{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:8px;
+      margin-top:10px;
+    }
+    .btn2{
+      padding:10px 10px;
+      border-radius:12px;
+      border:1px solid rgba(148,163,184,.55);
+      background:rgba(15,23,42,.85);
+      color:#e5e7eb;
+      cursor:pointer;
+      font-size:13px;
+      font-weight:750;
+      transition:transform .1s,border-color .12s,opacity .12s;
+    }
+    .btn2:hover{border-color:rgba(79,209,255,.8);transform:translateY(-1px)}
+    .btn2:disabled{opacity:.45;cursor:not-allowed;transform:none}
+    .big{font-size:14px;font-weight:800}
+    @keyframes spinScale {
+      0%{transform:scale(1);opacity:.75}
+      50%{transform:scale(1.08);opacity:1}
+      100%{transform:scale(1);opacity:.75}
+    }
+    .rolling .emoji{animation:spinScale .18s linear infinite}
+    @media (max-width: 760px){
+      .duel{grid-template-columns:1fr}
+      .stage{min-height:132px}
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div class="nav">
+        <div class="logo">176<span>55</span> 游戏</div>
+        <div class="nav-right">
+          <a href="../index.html">← 返回首页</a>
+          <a href="./game10-guess.html">下一个：神秘数字 →</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container game-shell">
+    <div class="game-top">
+      <div>
+        <h2 class="game-title">石头剪刀布</h2>
+        <div class="hint">与电脑猜拳。胜利 +1 分，失败 -1 分（最低 0），平局不变。</div>
+      </div>
+      <div class="row">
+        <span class="muted">昵称：</span>
+        <input data-player-name placeholder="游客" />
+        <button class="btn ghost" style="padding:8px 12px" id="reset">重置</button>
+        <button class="btn primary" style="padding:8px 12px" id="submit" disabled>提交成绩</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="duel">
+        <section class="side">
+          <h3>玩家区域 <span class="pill">你来选择</span></h3>
+          <div class="stage" id="player-stage">
+            <div class="emoji" id="player-emoji">❔</div>
+            <div class="label" id="player-label">等待出拳</div>
+            <div class="hint2">点击下方按钮出拳</div>
+          </div>
+          <div class="pick">
+            <button class="btn2" data-m="石头">石头 ✊</button>
+            <button class="btn2" data-m="剪刀">剪刀 ✌️</button>
+            <button class="btn2" data-m="布">布 ✋</button>
+          </div>
+        </section>
+
+        <section class="side">
+          <h3>电脑区域 <span class="pill">自动选择</span></h3>
+          <div class="stage" id="cpu-stage">
+            <div class="emoji" id="cpu-emoji">🤖</div>
+            <div class="label" id="cpu-label">等待玩家出拳</div>
+            <div class="hint2">将先轮播动画，再锁定结果</div>
+          </div>
+        </section>
+      </div>
+      <div style="text-align:center;margin-top:12px">
+        <div class="pill">分数：<span id="score">0</span></div>
+        <div class="muted" style="margin-top:10px" id="log">请选择一个出拳与电脑对战。</div>
+        <div class="muted" style="margin-top:8px;font-size:12px">
+          排行榜规则：最终分数 = 当前累计分数（可随时提交一次）。
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer><div>© 2026 17655.com · 石头剪刀布</div></footer>
+
+  <script src="../assets/site.js"></script>
+  <script>
+    Site17655.bindPlayerNameInput();
+    const scoreEl = document.getElementById('score');
+    const logEl = document.getElementById('log');
+    const resetBtn = document.getElementById('reset');
+    const submitBtn = document.getElementById('submit');
+    const playerEmojiEl = document.getElementById('player-emoji');
+    const playerLabelEl = document.getElementById('player-label');
+    const cpuEmojiEl = document.getElementById('cpu-emoji');
+    const cpuLabelEl = document.getElementById('cpu-label');
+    const cpuStageEl = document.getElementById('cpu-stage');
+    const choiceBtns = Array.from(document.querySelectorAll('[data-m]'));
+    const options = ['石头','剪刀','布'];
+    const symbols = { '石头':'✊', '剪刀':'✌️', '布':'✋' };
+    let score = 0;
+    let submitted = false;
+    let busy = false;
+    let rollTimer = null;
+
+    function decide(p, c) {
+      if (p === c) return 0;
+      if ((p==='石头'&&c==='剪刀')||(p==='剪刀'&&c==='布')||(p==='布'&&c==='石头')) return 1;
+      return -1;
+    }
+
+    function update() {
+      scoreEl.textContent = score;
+      submitBtn.disabled = submitted;
+    }
+
+    function setButtonsDisabled(disabled) {
+      choiceBtns.forEach(btn => { btn.disabled = disabled; });
+    }
+
+    function setPlayerPick(p) {
+      playerEmojiEl.textContent = symbols[p] || '❔';
+      playerLabelEl.textContent = p || '等待出拳';
+    }
+
+    function setCpuPick(c, text) {
+      cpuEmojiEl.textContent = symbols[c] || '🤖';
+      cpuLabelEl.textContent = text || c || '等待玩家出拳';
+    }
+
+    function play(p) {
+      if (busy) return;
+      busy = true;
+      setButtonsDisabled(true);
+      setPlayerPick(p);
+      setCpuPick('石头', '电脑思考中...');
+      cpuStageEl.classList.add('rolling');
+
+      const finalPick = options[Math.floor(Math.random()*3)];
+      let i = 0;
+      clearInterval(rollTimer);
+      rollTimer = setInterval(() => {
+        const rollingPick = options[i % options.length];
+        setCpuPick(rollingPick, '电脑思考中...');
+        i++;
+      }, 120);
+
+      setTimeout(() => {
+        clearInterval(rollTimer);
+        cpuStageEl.classList.remove('rolling');
+        setCpuPick(finalPick, finalPick);
+        const c = finalPick;
+      const r = decide(p, c);
+      if (r === 1) score += 1;
+      if (r === -1) score = Math.max(0, score - 1);
+      const text = r===1 ? '你赢了！' : (r===0 ? '平局。' : '你输了～');
+      logEl.innerHTML = `<span class="big">你出：${p}</span>，电脑出：<span class="big">${c}</span>，结果：<span class="big">${text}</span>`;
+      update();
+        busy = false;
+        setButtonsDisabled(false);
+      }, 1100);
+    }
+
+    document.querySelectorAll('[data-m]').forEach(btn => {
+      btn.addEventListener('click', () => play(btn.dataset.m));
+    });
+
+    resetBtn.addEventListener('click', () => {
+      clearInterval(rollTimer);
+      busy = false;
+      score = 0;
+      submitted = false;
+      setButtonsDisabled(false);
+      cpuStageEl.classList.remove('rolling');
+      setPlayerPick('');
+      setCpuPick('', '等待玩家出拳');
+      logEl.textContent = '请选择一个出拳与电脑对战。';
+      update();
+    });
+
+    submitBtn.addEventListener('click', () => {
+      if (submitted) return;
+      const name = Site17655.qs('[data-player-name]').value;
+      Site17655.addScore({ gameId:'game09', gameName:'石头剪刀布', score, playerName:name });
+      submitted = true;
+      update();
+      alert('已提交成绩到本地排行榜：' + score);
+    });
+
+    update();
+  </script>
+</body>
+</html>

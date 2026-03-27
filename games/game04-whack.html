@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>打地鼠 - 17655小游戏</title>
+  <link rel="stylesheet" href="../assets/style.css" />
+  <style>
+    #grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:280px;margin:0 auto}
+    .hole{
+      width:84px;height:84px;border-radius:50%;
+      background:radial-gradient(circle at top, #111827, #020617 62%);
+      border:2px solid rgba(55,65,81,.9);
+      position:relative;overflow:hidden;cursor:pointer;
+    }
+    .mole{
+      position:absolute;left:50%;bottom:-60px;transform:translateX(-50%);
+      width:44px;height:44px;border-radius:50%;
+      background:var(--yellow);
+      box-shadow:0 0 10px rgba(250,204,21,.45);
+      transition:bottom .12s;
+    }
+    .mole.up{bottom:16px}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div class="nav">
+        <div class="logo">176<span>55</span> 游戏</div>
+        <div class="nav-right">
+          <a href="../index.html">← 返回首页</a>
+          <a href="./game05-2048.html">下一个：2048 →</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container game-shell">
+    <div class="game-top">
+      <div>
+        <h2 class="game-title">打地鼠</h2>
+        <div class="hint">限时 30 秒。看到地鼠冒头就点它，打中 +1 分。</div>
+      </div>
+      <div class="row">
+        <span class="muted">昵称：</span>
+        <input data-player-name placeholder="游客" />
+        <button class="btn ghost" style="padding:8px 12px" id="start">开始</button>
+        <button class="btn primary" style="padding:8px 12px" id="submit" disabled>提交成绩</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div id="grid"></div>
+      <div class="row" style="justify-content:center;margin-top:10px">
+        <span class="pill">得分：<span id="score">0</span></span>
+        <span class="pill">剩余：<span id="time">30</span> 秒</span>
+        <span class="pill">状态：<span id="state">未开始</span></span>
+      </div>
+      <div class="muted" style="margin-top:10px;font-size:12px;text-align:center">
+        排行榜规则：最终得分 = 打中次数。
+      </div>
+    </div>
+  </main>
+
+  <footer><div>© 2026 17655.com · 打地鼠</div></footer>
+
+  <script src="../assets/site.js"></script>
+  <script>
+    Site17655.bindPlayerNameInput();
+    const gridEl = document.getElementById('grid');
+    const scoreEl = document.getElementById('score');
+    const timeEl = document.getElementById('time');
+    const stateEl = document.getElementById('state');
+    const startBtn = document.getElementById('start');
+    const submitBtn = document.getElementById('submit');
+
+    let score = 0, timeLeft = 30, timer = null, current = -1, running = false, submitted = false;
+
+    function build() {
+      gridEl.innerHTML = '';
+      for (let i = 0; i < 9; i++) {
+        const hole = document.createElement('div');
+        hole.className = 'hole';
+        hole.dataset.i = i;
+        const mole = document.createElement('div');
+        mole.className = 'mole';
+        hole.appendChild(mole);
+        hole.onclick = () => hit(i);
+        gridEl.appendChild(hole);
+      }
+    }
+
+    function hideAll() {
+      Site17655.qsa('.mole', gridEl).forEach(m => m.classList.remove('up'));
+      current = -1;
+    }
+
+    function next() {
+      hideAll();
+      current = Math.floor(Math.random() * 9);
+      const hole = gridEl.children[current];
+      hole.querySelector('.mole').classList.add('up');
+    }
+
+    function start() {
+      score = 0;
+      timeLeft = 30;
+      submitted = false;
+      submitBtn.disabled = true;
+      running = true;
+      scoreEl.textContent = score;
+      timeEl.textContent = timeLeft;
+      stateEl.textContent = '进行中';
+      if (timer) clearInterval(timer);
+      next();
+      timer = setInterval(() => {
+        timeLeft--;
+        timeEl.textContent = timeLeft;
+        if (timeLeft <= 0) {
+          end();
+        } else {
+          next();
+        }
+      }, 1000);
+    }
+
+    function end() {
+      running = false;
+      clearInterval(timer);
+      hideAll();
+      stateEl.textContent = '结束';
+      submitBtn.disabled = submitted ? true : false;
+      alert('时间到！得分：' + score);
+    }
+
+    function hit(i) {
+      if (!running) return;
+      if (i !== current) return;
+      score++;
+      scoreEl.textContent = score;
+      hideAll();
+    }
+
+    startBtn.addEventListener('click', start);
+    submitBtn.addEventListener('click', () => {
+      if (running || submitted) return;
+      const name = Site17655.qs('[data-player-name]').value;
+      Site17655.addScore({ gameId:'game04', gameName:'打地鼠', score, playerName:name });
+      submitted = true;
+      submitBtn.disabled = true;
+      alert('已提交成绩到本地排行榜：' + score);
+    });
+
+    build();
+  </script>
+</body>
+</html>

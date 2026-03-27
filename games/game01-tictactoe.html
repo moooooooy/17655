@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>井字棋 - 17655小游戏</title>
+  <link rel="stylesheet" href="../assets/style.css" />
+  <style>
+    #board{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;max-width:260px;margin:0 auto}
+    .cell{
+      height:78px;border-radius:12px;
+      background:#020617;border:1px solid rgba(75,85,99,.9);
+      display:flex;align-items:center;justify-content:center;
+      font-size:36px;font-weight:900;cursor:pointer;
+      transition:transform .08s, background .12s, border-color .12s;
+    }
+    .cell:hover{transform:translateY(-1px);border-color:rgba(79,209,255,.8);background:rgba(15,23,42,.9)}
+    .status{text-align:center;margin-top:10px;font-size:12px;color:#c4c8d8}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div class="nav">
+        <div class="logo">176<span>55</span> 游戏</div>
+        <div class="nav-right">
+          <a href="../index.html">← 返回首页</a>
+          <a href="./game02-snake.html">下一个：贪吃蛇 →</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container game-shell">
+    <div class="game-top">
+      <div>
+        <h2 class="game-title">井字棋</h2>
+        <div class="hint">两人本地对战：轮流点击格子，先连成一条线获胜。</div>
+      </div>
+      <div class="row">
+        <span class="muted">昵称：</span>
+        <input data-player-name placeholder="游客" />
+        <button class="btn ghost" style="padding:8px 12px" id="submit" disabled>提交胜局到排行榜</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div id="board"></div>
+      <div class="status" id="status"></div>
+      <div class="row" style="justify-content:center;margin-top:10px">
+        <button class="btn primary" id="restart">重新开始</button>
+      </div>
+      <div class="muted" style="margin-top:10px;font-size:12px;text-align:center">
+        排行榜规则：胜方记 1 分（平局不计分）。结束后可提交一次。
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div>© 2026 17655.com · 井字棋</div>
+  </footer>
+
+  <script src="../assets/site.js"></script>
+  <script>
+    Site17655.bindPlayerNameInput();
+
+    const boardEl = document.getElementById('board');
+    const statusEl = document.getElementById('status');
+    const submitBtn = document.getElementById('submit');
+    const restartBtn = document.getElementById('restart');
+
+    let board = Array(9).fill('');
+    let cur = 'X';
+    let over = false;
+    let winner = '';
+    let submitted = false;
+
+    const lines = [
+      [0,1,2],[3,4,5],[6,7,8],
+      [0,3,6],[1,4,7],[2,5,8],
+      [0,4,8],[2,4,6]
+    ];
+
+    function render() {
+      boardEl.innerHTML = '';
+      for (let i = 0; i < 9; i++) {
+        const c = document.createElement('div');
+        c.className = 'cell';
+        c.textContent = board[i];
+        c.onclick = () => clickCell(i);
+        boardEl.appendChild(c);
+      }
+      if (!over) statusEl.textContent = `当前回合：${cur}`;
+      else statusEl.textContent = winner ? `玩家 ${winner} 获胜！` : '平局！';
+      submitBtn.disabled = !over || !winner || submitted;
+    }
+
+    function clickCell(i) {
+      if (over || board[i]) return;
+      board[i] = cur;
+      if (lines.some(l => l.every(idx => board[idx] === cur))) {
+        over = true;
+        winner = cur;
+      } else if (board.every(Boolean)) {
+        over = true;
+        winner = '';
+      } else {
+        cur = (cur === 'X') ? 'O' : 'X';
+      }
+      render();
+    }
+
+    function restart() {
+      board = Array(9).fill('');
+      cur = 'X';
+      over = false;
+      winner = '';
+      submitted = false;
+      render();
+    }
+
+    submitBtn.addEventListener('click', () => {
+      if (!winner || submitted) return;
+      const name = Site17655.qs('[data-player-name]').value;
+      Site17655.addScore({ gameId:'game01', gameName:'井字棋', score:1, playerName:name });
+      submitted = true;
+      render();
+      alert('已提交：胜局 +1 分（本地排行榜）');
+    });
+    restartBtn.addEventListener('click', restart);
+
+    restart();
+  </script>
+</body>
+</html>

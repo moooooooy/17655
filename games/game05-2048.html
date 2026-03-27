@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>2048 - 17655小游戏</title>
+  <link rel="stylesheet" href="../assets/style.css" />
+  <style>
+    #grid{
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      gap:8px;
+      max-width:360px;
+      margin:0 auto;
+      background:#020617;
+      padding:10px;
+      border-radius:16px;
+      border:1px solid rgba(31,41,55,.9);
+    }
+    .cell{
+      height:64px;
+      border-radius:12px;
+      display:flex;align-items:center;justify-content:center;
+      font-weight:900;
+      font-size:20px;
+      border:1px solid rgba(55,65,81,.9);
+      background:#111827;
+      user-select:none;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div class="nav">
+        <div class="logo">176<span>55</span> 游戏</div>
+        <div class="nav-right">
+          <a href="../index.html">← 返回首页</a>
+          <a href="./game06-pong.html">下一个：迷你乒乓 →</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container game-shell">
+    <div class="game-top">
+      <div>
+        <h2 class="game-title">2048</h2>
+        <div class="hint">方向键移动，合并相同数字。分数按合并后的数字累加。</div>
+      </div>
+      <div class="row">
+        <span class="muted">昵称：</span>
+        <input data-player-name placeholder="游客" />
+        <button class="btn ghost" style="padding:8px 12px" id="restart">重新开始</button>
+        <button class="btn primary" style="padding:8px 12px" id="submit" disabled>提交成绩</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div id="grid"></div>
+      <div class="row" style="justify-content:center;margin-top:10px">
+        <span class="pill">分数：<span id="score">0</span></span>
+        <span class="pill">状态：<span id="state">进行中</span></span>
+      </div>
+      <div class="muted" style="margin-top:10px;font-size:12px;text-align:center">
+        排行榜规则：最终分数 = 游戏内分数（合并累加）。
+      </div>
+    </div>
+  </main>
+
+  <footer><div>© 2026 17655.com · 2048</div></footer>
+
+  <script src="../assets/site.js"></script>
+  <script>
+    Site17655.bindPlayerNameInput();
+    const gridEl = document.getElementById('grid');
+    const scoreEl = document.getElementById('score');
+    const stateEl = document.getElementById('state');
+    const restartBtn = document.getElementById('restart');
+    const submitBtn = document.getElementById('submit');
+
+    let grid, score, over, submitted;
+
+    function emptyCells() {
+      const arr = [];
+      for (let r=0;r<4;r++) for (let c=0;c<4;c++) if (!grid[r][c]) arr.push({r,c});
+      return arr;
+    }
+    function spawn() {
+      const e = emptyCells();
+      if (!e.length) return;
+      const {r,c} = e[Math.floor(Math.random()*e.length)];
+      grid[r][c] = Math.random() < 0.9 ? 2 : 4;
+    }
+    function clone(g){ return g.map(row => row.slice()); }
+
+    function init() {
+      grid = Array.from({length:4}, () => Array(4).fill(0));
+      score = 0;
+      over = false;
+      submitted = false;
+      spawn(); spawn();
+      render();
+      updateUI();
+    }
+
+    function colors(v){
+      const map = {
+        2:'#e5e7eb',4:'#bfdbfe',8:'#fdba74',16:'#fb923c',32:'#f97316',64:'#ea580c',
+        128:'#facc15',256:'#a3e635',512:'#22c55e',1024:'#14b8a6',2048:'#6366f1'
+      };
+      return map[v] || '#a855f7';
+    }
+
+    function render() {
+      gridEl.innerHTML = '';
+      for (let r=0;r<4;r++){
+        for(let c=0;c<4;c++){
+          const v = grid[r][c];
+          const cell = document.createElement('div');
+          cell.className = 'cell';
+          cell.textContent = v ? v : '';
+          cell.style.background = v ? 'rgba(17,24,39,.92)' : '#020617';
+          cell.style.color = v ? colors(v) : '#6b7280';
+          gridEl.appendChild(cell);
+        }
+      }
+    }
+
+    function updateUI() {
+      scoreEl.textContent = score;
+      stateEl.textContent = over ? '结束' : '进行中';
+      submitBtn.disabled = !over || submitted;
+    }
+
+    function compress(line){
+      const arr = line.filter(Boolean);
+      while (arr.length < 4) arr.push(0);
+      return arr;
+    }
+    function merge(line){
+      for (let i=0;i<3;i++){
+        if (line[i] && line[i] === line[i+1]) {
+          line[i] *= 2;
+          score += line[i];
+          line[i+1] = 0;
+        }
+      }
+      return compress(line);
+    }
+    function canMove(){
+      if (emptyCells().length) return true;
+      for (let r=0;r<4;r++){
+        for(let c=0;c<4;c++){
+          const v = grid[r][c];
+          if (r<3 && grid[r+1][c]===v) return true;
+          if (c<3 && grid[r][c+1]===v) return true;
+        }
+      }
+      return false;
+    }
+
+    function move(dir){
+      if (over) return;
+      const before = JSON.stringify(grid);
+      const g = clone(grid);
+
+      if (dir === 'left') {
+        for (let r=0;r<4;r++) g[r] = merge(compress(g[r]));
+      }
+      if (dir === 'right') {
+        for (let r=0;r<4;r++) g[r] = merge(compress(g[r].slice().reverse())).reverse();
+      }
+      if (dir === 'up') {
+        for (let c=0;c<4;c++){
+          const col = [g[0][c],g[1][c],g[2][c],g[3][c]];
+          const m = merge(compress(col));
+          for (let r=0;r<4;r++) g[r][c] = m[r];
+        }
+      }
+      if (dir === 'down') {
+        for (let c=0;c<4;c++){
+          const col = [g[0][c],g[1][c],g[2][c],g[3][c]].reverse();
+          const m = merge(compress(col)).reverse();
+          for (let r=0;r<4;r++) g[r][c] = m[r];
+        }
+      }
+
+      grid = g;
+      const after = JSON.stringify(grid);
+      if (before !== after) spawn();
+      over = !canMove();
+      render();
+      updateUI();
+      if (over) alert('游戏结束！分数：' + score);
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)) return;
+      e.preventDefault();
+      if (e.key==='ArrowLeft') move('left');
+      if (e.key==='ArrowRight') move('right');
+      if (e.key==='ArrowUp') move('up');
+      if (e.key==='ArrowDown') move('down');
+    }, {passive:false});
+
+    restartBtn.addEventListener('click', init);
+    submitBtn.addEventListener('click', () => {
+      if (!over || submitted) return;
+      const name = Site17655.qs('[data-player-name]').value;
+      Site17655.addScore({ gameId:'game05', gameName:'2048', score, playerName:name });
+      submitted = true;
+      updateUI();
+      alert('已提交成绩到本地排行榜：' + score);
+    });
+
+    init();
+  </script>
+</body>
+</html>

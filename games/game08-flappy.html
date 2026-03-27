@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Flappy Box - 17655小游戏</title>
+  <link rel="stylesheet" href="../assets/style.css" />
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div class="nav">
+        <div class="logo">176<span>55</span> 游戏</div>
+        <div class="nav-right">
+          <a href="../index.html">← 返回首页</a>
+          <a href="./game09-rps.html">下一个：猜拳 →</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container game-shell">
+    <div class="game-top">
+      <div>
+        <h2 class="game-title">Flappy Box</h2>
+        <div class="hint">点击或按空格向上跳，穿越管道缝隙得分。撞到障碍或落地结束。</div>
+      </div>
+      <div class="row">
+        <span class="muted">昵称：</span>
+        <input data-player-name placeholder="游客" />
+        <button class="btn ghost" style="padding:8px 12px" id="start">开始</button>
+        <button class="btn primary" style="padding:8px 12px" id="submit" disabled>提交成绩</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <canvas id="c" width="320" height="220"></canvas>
+      <div class="row" style="justify-content:center;margin-top:10px">
+        <span class="pill">分数：<span id="score">0</span></span>
+        <span class="pill">状态：<span id="state">未开始</span></span>
+      </div>
+      <div class="muted" style="margin-top:10px;font-size:12px;text-align:center">
+        排行榜规则：最终分数 = 穿越的管道数量。
+      </div>
+    </div>
+  </main>
+
+  <footer><div>© 2026 17655.com · Flappy Box</div></footer>
+
+  <script src="../assets/site.js"></script>
+  <script>
+    Site17655.bindPlayerNameInput();
+    const canvas = document.getElementById('c');
+    const ctx = canvas.getContext('2d');
+    const scoreEl = document.getElementById('score');
+    const stateEl = document.getElementById('state');
+    const startBtn = document.getElementById('start');
+    const submitBtn = document.getElementById('submit');
+
+    const W = canvas.width, H = canvas.height;
+    let player, pipes, running, over, submitted, score;
+    let raf = 0;
+
+    function reset() {
+      player = {x:70, y:110, vy:0, size:16};
+      pipes = [];
+      score = 0;
+      running = false;
+      over = false;
+      submitted = false;
+      scoreEl.textContent = score;
+      stateEl.textContent = '未开始';
+      submitBtn.disabled = true;
+      let x = 230;
+      for (let i=0;i<3;i++){ pipes.push(makePipe(x)); x += 130; }
+      draw();
+    }
+
+    function makePipe(x) {
+      const gap = 70;
+      const topH = 30 + Math.random() * 90;
+      return {x, w:34, topH, gap, passed:false};
+    }
+
+    function start() {
+      reset();
+      running = true;
+      stateEl.textContent = '进行中';
+      loop();
+    }
+
+    function end(msg) {
+      running = false;
+      over = true;
+      stateEl.textContent = '结束';
+      submitBtn.disabled = submitted ? true : false;
+      alert((msg || '结束') + ' 得分：' + score);
+    }
+
+    function flap() {
+      if (!running) return;
+      player.vy = -3.8;
+    }
+
+    function loop() {
+      if (!running) return;
+      update();
+      draw();
+      raf = requestAnimationFrame(loop);
+    }
+
+    function rectHit(ax,ay,aw,ah,bx,by,bw,bh) {
+      return ax < bx + bw && ax + aw > bx && ay < by + bh && ay + ah > by;
+    }
+
+    function update() {
+      player.vy += 0.2;
+      player.y += player.vy;
+
+      pipes.forEach(p => p.x -= 1.7);
+      if (pipes[0].x < -60) {
+        pipes.shift();
+        pipes.push(makePipe(pipes[pipes.length-1].x + 130));
+      }
+
+      // score
+      pipes.forEach(p => {
+        if (!p.passed && p.x + p.w < player.x) {
+          p.passed = true;
+          score++;
+          scoreEl.textContent = score;
+        }
+      });
+
+      const px = player.x - player.size/2;
+      const py = player.y - player.size/2;
+      const ps = player.size;
+
+      // bounds
+      if (player.y < 0 || player.y > H) return end('撞到边界！');
+
+      // pipes collision
+      for (const p of pipes) {
+        const topRect = {x:p.x, y:0, w:p.w, h:p.topH};
+        const botRect = {x:p.x, y:p.topH+p.gap, w:p.w, h:H-(p.topH+p.gap)};
+        if (rectHit(px,py,ps,ps, topRect.x,topRect.y,topRect.w,topRect.h) ||
+            rectHit(px,py,ps,ps, botRect.x,botRect.y,botRect.w,botRect.h)) {
+          return end('撞到管道！');
+        }
+      }
+    }
+
+    function draw() {
+      // sky gradient
+      const g = ctx.createLinearGradient(0,0,0,H);
+      g.addColorStop(0,'#38bdf8');
+      g.addColorStop(1,'#0b1020');
+      ctx.fillStyle = g;
+      ctx.fillRect(0,0,W,H);
+
+      // pipes
+      for (const p of pipes) {
+        ctx.fillStyle = '#22c55e';
+        ctx.fillRect(p.x, 0, p.w, p.topH);
+        ctx.fillRect(p.x, p.topH + p.gap, p.w, H - (p.topH + p.gap));
+      }
+
+      // player
+      ctx.fillStyle = '#facc15';
+      ctx.fillRect(player.x - player.size/2, player.y - player.size/2, player.size, player.size);
+
+      // border
+      ctx.strokeStyle = 'rgba(255,255,255,.10)';
+      ctx.strokeRect(0.5,0.5,W-1,H-1);
+    }
+
+    canvas.addEventListener('click', flap);
+    document.addEventListener('keydown', (e) => {
+      if (e.key !== ' ') return;
+      e.preventDefault();
+      flap();
+    }, {passive:false});
+
+    startBtn.addEventListener('click', () => {
+      cancelAnimationFrame(raf);
+      start();
+    });
+
+    submitBtn.addEventListener('click', () => {
+      if (!over || submitted) return;
+      const name = Site17655.qs('[data-player-name]').value;
+      Site17655.addScore({ gameId:'game08', gameName:'Flappy Box', score, playerName:name });
+      submitted = true;
+      submitBtn.disabled = true;
+      alert('已提交成绩到本地排行榜：' + score);
+    });
+
+    // enable submit when over
+    const obs = new MutationObserver(() => {
+      if (stateEl.textContent === '结束') submitBtn.disabled = submitted;
+    });
+    obs.observe(stateEl, {childList:true});
+
+    reset();
+  </script>
+</body>
+</html>

@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>神秘数字 - 17655小游戏</title>
+  <link rel="stylesheet" href="../assets/style.css" />
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div class="nav">
+        <div class="logo">176<span>55</span> 游戏</div>
+        <div class="nav-right">
+          <a href="../index.html">← 返回首页</a>
+          <a href="./game01-tictactoe.html">回到第1个：井字棋 →</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container game-shell">
+    <div class="game-top">
+      <div>
+        <h2 class="game-title">神秘数字（1~100）</h2>
+        <div class="hint">系统随机一个数字，你来猜。猜的次数越少，得分越高。</div>
+      </div>
+      <div class="row">
+        <span class="muted">昵称：</span>
+        <input data-player-name placeholder="游客" />
+        <button class="btn ghost" style="padding:8px 12px" id="reset">重置</button>
+        <button class="btn primary" style="padding:8px 12px" id="submit" disabled>提交成绩</button>
+      </div>
+    </div>
+
+    <div class="panel" style="max-width:560px;margin:0 auto">
+      <div class="row" style="justify-content:center">
+        <input id="guess" type="number" min="1" max="100" placeholder="1~100" style="width:120px;text-align:center" />
+        <button class="btn primary" style="padding:8px 12px" id="go">猜一猜</button>
+      </div>
+      <div style="text-align:center;margin-top:12px">
+        <div class="pill">次数：<span id="tries">0</span></div>
+        <div class="pill" style="margin-left:8px">得分：<span id="score">0</span></div>
+        <div class="muted" style="margin-top:10px" id="msg">请输入 1~100 的整数开始猜测。</div>
+        <div class="muted" style="margin-top:8px;font-size:12px">
+          排行榜规则：得分 = max(0, 1000 - 次数×80)（猜中后可提交一次）。
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer><div>© 2026 17655.com · 神秘数字</div></footer>
+
+  <script src="../assets/site.js"></script>
+  <script>
+    Site17655.bindPlayerNameInput();
+    const guessEl = document.getElementById('guess');
+    const triesEl = document.getElementById('tries');
+    const scoreEl = document.getElementById('score');
+    const msgEl = document.getElementById('msg');
+    const goBtn = document.getElementById('go');
+    const resetBtn = document.getElementById('reset');
+    const submitBtn = document.getElementById('submit');
+
+    let target = 0, tries = 0, done = false, submitted = false, score = 0;
+
+    function calcScore() {
+      return Math.max(0, 1000 - tries * 80);
+    }
+
+    function reset() {
+      target = 1 + Math.floor(Math.random() * 100);
+      tries = 0;
+      done = false;
+      submitted = false;
+      score = 0;
+      triesEl.textContent = tries;
+      scoreEl.textContent = score;
+      msgEl.textContent = '请输入 1~100 的整数开始猜测。';
+      submitBtn.disabled = true;
+      guessEl.value = '';
+      guessEl.focus();
+    }
+
+    function guess() {
+      if (done) return;
+      const v = Number(guessEl.value);
+      if (!Number.isFinite(v) || v < 1 || v > 100) {
+        msgEl.textContent = '请输入 1~100 之间的整数。';
+        return;
+      }
+      tries++;
+      triesEl.textContent = tries;
+      if (v === target) {
+        done = true;
+        score = calcScore();
+        scoreEl.textContent = score;
+        msgEl.textContent = '恭喜猜对了！你可以提交成绩或点击重置再来一局。';
+        submitBtn.disabled = submitted;
+      } else if (v < target) {
+        msgEl.textContent = '太小了，再大一点。';
+      } else {
+        msgEl.textContent = '太大了，再小一点。';
+      }
+    }
+
+    goBtn.addEventListener('click', guess);
+    guessEl.addEventListener('keydown', (e) => {
+      if (e.key !== 'Enter') return;
+      e.preventDefault();
+      guess();
+    });
+    resetBtn.addEventListener('click', reset);
+    submitBtn.addEventListener('click', () => {
+      if (!done || submitted) return;
+      const name = Site17655.qs('[data-player-name]').value;
+      Site17655.addScore({ gameId:'game10', gameName:'神秘数字', score, playerName:name });
+      submitted = true;
+      submitBtn.disabled = true;
+      alert('已提交成绩到本地排行榜：' + score);
+    });
+
+    reset();
+  </script>
+</body>
+</html>

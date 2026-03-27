@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>贪吃蛇 - 17655小游戏</title>
+  <link rel="stylesheet" href="../assets/style.css" />
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div class="nav">
+        <div class="logo">176<span>55</span> 游戏</div>
+        <div class="nav-right">
+          <a href="../index.html">← 返回首页</a>
+          <a href="./game03-memory.html">下一个：记忆翻牌 →</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container game-shell">
+    <div class="game-top">
+      <div>
+        <h2 class="game-title">贪吃蛇</h2>
+        <div class="hint">方向键控制移动。吃到食物 +1 分；撞墙或撞到自己结束。</div>
+      </div>
+      <div class="row">
+        <span class="muted">昵称：</span>
+        <input data-player-name placeholder="游客" />
+        <button class="btn ghost" style="padding:8px 12px" id="start">开始/重开</button>
+        <button class="btn primary" style="padding:8px 12px" id="submit" disabled>提交成绩</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <canvas id="c" width="286" height="286"></canvas>
+      <div class="row" style="justify-content:center;margin-top:10px">
+        <span class="pill">分数：<span id="score">0</span></span>
+        <span class="pill">状态：<span id="state">未开始</span></span>
+      </div>
+      <div class="muted" style="margin-top:10px;font-size:12px;text-align:center">
+        排行榜规则：最终分数 = 吃到的食物数量。
+      </div>
+    </div>
+  </main>
+
+  <footer><div>© 2026 17655.com · 贪吃蛇</div></footer>
+
+  <script src="../assets/site.js"></script>
+  <script>
+    Site17655.bindPlayerNameInput();
+    const canvas = document.getElementById('c');
+    const ctx = canvas.getContext('2d');
+    const scoreEl = document.getElementById('score');
+    const stateEl = document.getElementById('state');
+    const startBtn = document.getElementById('start');
+    const submitBtn = document.getElementById('submit');
+
+    const GRID = 13;
+    const SIZE = Math.floor(canvas.width / GRID);
+    let snake, dir, food, timer, running, over, score, submitted;
+
+    function rnd(n){ return Math.floor(Math.random()*n); }
+    function same(a,b){ return a.x===b.x && a.y===b.y; }
+
+    function spawnFood() {
+      let f;
+      do {
+        f = {x:rnd(GRID), y:rnd(GRID)};
+      } while (snake.some(p => same(p,f)));
+      return f;
+    }
+
+    function reset() {
+      snake = [{x:6,y:6}];
+      dir = {x:1,y:0};
+      food = {x:9,y:6};
+      running = false;
+      over = false;
+      score = 0;
+      submitted = false;
+      scoreEl.textContent = score;
+      stateEl.textContent = '未开始';
+      submitBtn.disabled = true;
+      draw();
+    }
+
+    function start() {
+      reset();
+      running = true;
+      stateEl.textContent = '进行中';
+      if (timer) clearInterval(timer);
+      timer = setInterval(tick, 135);
+    }
+
+    function endGame() {
+      running = false;
+      over = true;
+      stateEl.textContent = '结束';
+      clearInterval(timer);
+      submitBtn.disabled = submitted ? true : false;
+      alert('游戏结束！你的分数：' + score);
+    }
+
+    function tick() {
+      if (!running) return;
+      const head = {x: snake[0].x + dir.x, y: snake[0].y + dir.y};
+      if (head.x<0 || head.y<0 || head.x>=GRID || head.y>=GRID) return endGame();
+      if (snake.some(p => same(p, head))) return endGame();
+      snake.unshift(head);
+      if (same(head, food)) {
+        score++;
+        scoreEl.textContent = score;
+        food = spawnFood();
+      } else {
+        snake.pop();
+      }
+      draw();
+    }
+
+    function draw() {
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      ctx.fillStyle = '#020617';
+      ctx.fillRect(0,0,canvas.width,canvas.height);
+      ctx.fillStyle = '#111827';
+      for (let y=0;y<GRID;y++){
+        for(let x=0;x<GRID;x++){
+          ctx.fillRect(x*SIZE+1, y*SIZE+1, SIZE-2, SIZE-2);
+        }
+      }
+      // food
+      ctx.fillStyle = '#f97316';
+      ctx.fillRect(food.x*SIZE+3, food.y*SIZE+3, SIZE-6, SIZE-6);
+      // snake
+      ctx.fillStyle = '#22c55e';
+      snake.forEach((p,i)=>{
+        ctx.fillRect(p.x*SIZE+3, p.y*SIZE+3, SIZE-6, SIZE-6);
+      });
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (!running) return;
+      if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)) e.preventDefault();
+      if (e.key==='ArrowUp' && dir.y!==1) dir={x:0,y:-1};
+      if (e.key==='ArrowDown' && dir.y!==-1) dir={x:0,y:1};
+      if (e.key==='ArrowLeft' && dir.x!==1) dir={x:-1,y:0};
+      if (e.key==='ArrowRight' && dir.x!==-1) dir={x:1,y:0};
+    }, {passive:false});
+
+    startBtn.addEventListener('click', start);
+    submitBtn.addEventListener('click', () => {
+      if (!over || submitted) return;
+      const name = Site17655.qs('[data-player-name]').value;
+      Site17655.addScore({ gameId:'game02', gameName:'贪吃蛇', score, playerName:name });
+      submitted = true;
+      submitBtn.disabled = true;
+      alert('已提交成绩到本地排行榜：' + score);
+    });
+
+    reset();
+  </script>
+</body>
+</html>

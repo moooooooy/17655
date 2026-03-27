@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>迷你乒乓 - 17655小游戏</title>
+  <link rel="stylesheet" href="../assets/style.css" />
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div class="nav">
+        <div class="logo">176<span>55</span> 游戏</div>
+        <div class="nav-right">
+          <a href="../index.html">← 返回首页</a>
+          <a href="./game07-breakout.html">下一个：打砖块 →</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container game-shell">
+    <div class="game-top">
+      <div>
+        <h2 class="game-title">迷你乒乓（生存模式）</h2>
+        <div class="hint">鼠标移动球拍，别让球掉下去。存活越久分越高。</div>
+      </div>
+      <div class="row">
+        <span class="muted">昵称：</span>
+        <input data-player-name placeholder="游客" />
+        <button class="btn ghost" style="padding:8px 12px" id="start">开始</button>
+        <button class="btn primary" style="padding:8px 12px" id="submit" disabled>提交成绩</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <canvas id="c" width="320" height="220"></canvas>
+      <div class="row" style="justify-content:center;margin-top:10px">
+        <span class="pill">分数：<span id="score">0</span></span>
+        <span class="pill">状态：<span id="state">未开始</span></span>
+      </div>
+      <div class="muted" style="margin-top:10px;font-size:12px;text-align:center">
+        排行榜规则：分数 = 存活秒数（向下取整）。
+      </div>
+    </div>
+  </main>
+
+  <footer><div>© 2026 17655.com · 迷你乒乓</div></footer>
+
+  <script src="../assets/site.js"></script>
+  <script>
+    Site17655.bindPlayerNameInput();
+    const canvas = document.getElementById('c');
+    const ctx = canvas.getContext('2d');
+    const scoreEl = document.getElementById('score');
+    const stateEl = document.getElementById('state');
+    const startBtn = document.getElementById('start');
+    const submitBtn = document.getElementById('submit');
+
+    const W = canvas.width, H = canvas.height;
+    const padW = 70, padH = 10, padY = H - 18;
+    let padX = (W - padW) / 2;
+    let ball, running, over, submitted, startAt, score;
+    let raf = 0;
+
+    function reset() {
+      ball = { x: W/2, y: H/2, vx: 2.2, vy: -2.4, r: 6 };
+      running = false;
+      over = false;
+      submitted = false;
+      score = 0;
+      scoreEl.textContent = score;
+      stateEl.textContent = '未开始';
+      submitBtn.disabled = true;
+      draw();
+    }
+
+    function start() {
+      reset();
+      running = true;
+      stateEl.textContent = '进行中';
+      startAt = performance.now();
+      loop();
+    }
+
+    function end() {
+      running = false;
+      over = true;
+      stateEl.textContent = '结束';
+      submitBtn.disabled = submitted ? true : false;
+      alert('游戏结束！分数：' + score);
+    }
+
+    function loop() {
+      if (!running) return;
+      update();
+      draw();
+      raf = requestAnimationFrame(loop);
+    }
+
+    function update() {
+      ball.x += ball.vx;
+      ball.y += ball.vy;
+
+      // walls
+      if (ball.x < ball.r || ball.x > W - ball.r) ball.vx *= -1;
+      if (ball.y < ball.r) ball.vy *= -1;
+
+      // paddle
+      if (ball.y + ball.r >= padY && ball.y + ball.r <= padY + padH) {
+        if (ball.x >= padX && ball.x <= padX + padW) {
+          ball.vy *= -1;
+          // little english
+          const rel = (ball.x - (padX + padW/2)) / (padW/2);
+          ball.vx += rel * 0.4;
+          ball.vx = Math.max(-4.5, Math.min(4.5, ball.vx));
+        }
+      }
+
+      if (ball.y > H + 10) {
+        score = Math.floor((performance.now() - startAt) / 1000);
+        scoreEl.textContent = score;
+        end();
+      } else {
+        score = Math.floor((performance.now() - startAt) / 1000);
+        scoreEl.textContent = score;
+      }
+    }
+
+    function draw() {
+      ctx.clearRect(0,0,W,H);
+      ctx.fillStyle = '#020617';
+      ctx.fillRect(0,0,W,H);
+      // paddle
+      ctx.fillStyle = '#22c55e';
+      ctx.fillRect(padX, padY, padW, padH);
+      // ball
+      ctx.fillStyle = '#4fd1ff';
+      ctx.beginPath();
+      ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI*2);
+      ctx.fill();
+      // border
+      ctx.strokeStyle = 'rgba(255,255,255,.08)';
+      ctx.strokeRect(0.5,0.5,W-1,H-1);
+    }
+
+    canvas.addEventListener('mousemove', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      padX = Math.max(0, Math.min(W - padW, x - padW/2));
+    });
+
+    startBtn.addEventListener('click', () => {
+      cancelAnimationFrame(raf);
+      start();
+    });
+
+    submitBtn.addEventListener('click', () => {
+      if (!over || submitted) return;
+      const name = Site17655.qs('[data-player-name]').value;
+      Site17655.addScore({ gameId:'game06', gameName:'迷你乒乓', score, playerName:name });
+      submitted = true;
+      submitBtn.disabled = true;
+      alert('已提交成绩到本地排行榜：' + score);
+    });
+
+    // enable submit when over
+    const obs = new MutationObserver(() => {
+      if (stateEl.textContent === '结束') submitBtn.disabled = submitted;
+    });
+    obs.observe(stateEl, {childList:true});
+
+    reset();
+  </script>
+</body>
+</html>
